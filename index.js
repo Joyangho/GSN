@@ -112,7 +112,7 @@ async function TokenAdd() {
             type: "ERC20", // 토큰 종류 (ERC20, BEP20 등)
             options: {
                 address: ADDRESS20, // 토큰의 스마트 컨트랙트 주소
-                symbol: "MTK", // 토큰 심볼 (예: ETH, DAI)
+                symbol: "ESS", // 토큰 심볼 (예: ETH, DAI)
                 decimals: 18, // 토큰의 소수점 자리수
             },
         };
@@ -149,7 +149,7 @@ async function checkBalance() {
         document.getElementById("balanceResult").innerText = `에러: ${error.message}`;
     }
 }
-
+/*
 async function addRelayer() {
     try {
         // Metamask에 연결된 지갑이 없다면 connectWallet 함수 호출
@@ -207,7 +207,8 @@ async function removeRelayer() {
         document.getElementById("removeRelayerResult").innerText = `에러: ${error.message}`;
     }
 }
-
+*/
+/*
 async function relayMetaTransaction() {
     try {
         
@@ -312,7 +313,7 @@ async function signMessage() {
         alert('MetaMask is not installed!');
     }
 }
-
+*/
 async function signAndSendGaslessTransaction() {
     if (typeof window.ethereum !== 'undefined') {
         const web3 = new Web3(window.ethereum);
@@ -320,7 +321,7 @@ async function signAndSendGaslessTransaction() {
 
         const accounts = await web3.eth.getAccounts();
         const ownerAddress = accounts[0];
-        const spenderAddress = "0xdd98b801d7b953c34400ac50015779a8c6060506"; // 스펜더 주소
+        const recipientAddress = "0xdd98b801d7b953c34400ac50015779a8c6060506"; // 스펜더 주소
         const amount = document.getElementById("forwardAmount").value; // 금액 입력
         const forwarderAddress = ADDRESSforwader; // Forwarder 스마트 계약 주소
         const chainId = await web3.eth.getChainId();
@@ -340,28 +341,28 @@ async function signAndSendGaslessTransaction() {
                 { name: 'chainId', type: 'uint256' },
                 { name: 'verifyingContract', type: 'address' }
             ],
-            ApproveRequest: [
+            TransferFromRequest: [
                 { name: 'verifyingContract', type: 'address' },
                 { name: 'owner', type: 'address' },
-                { name: 'spender', type: 'address' },
-                { name: 'value', type: 'uint256' }
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' }
             ]
         };
 
         const message = {
             verifyingContract: forwarderAddress,
             owner: ownerAddress,
-            spender: spenderAddress,
-            value: amount
+            recipient: recipientAddress,
+            amount: amount
         };
 
         const data = JSON.stringify({
             types: {
                 EIP712Domain: types.EIP712Domain,
-                ApproveRequest: types.ApproveRequest
+                TransferFromRequest: types.TransferFromRequest
             },
             domain,
-            primaryType: 'ApproveRequest',
+            primaryType: 'TransferFromRequest',
             message
         });
 
@@ -372,10 +373,10 @@ async function signAndSendGaslessTransaction() {
                 from: ownerAddress
             });
 
-            const receipt = await forwarderContract.methods.forwardApproveWithSignature(
+            const receipt = await forwarderContract.methods.forwardTransferFromWithSignature(
                 forwarderAddress,
                 ownerAddress,
-                spenderAddress,
+                recipientAddress,
                 amount,
                 signature
             ).send({ from: address[0] });
